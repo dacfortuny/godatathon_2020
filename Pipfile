@@ -73,6 +73,9 @@ seaborn = "*"
 plotly = "*"
 tqdm = "*"
 torch = "*"
+pytorch-lightning = "*"
+tensorboard = "*"
+scikit-learn = "*"
 
 [requires]
 python_version = "3.8"
