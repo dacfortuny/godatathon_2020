@@ -21,15 +21,20 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers):
+    def __init__(self, input_dim, hidden_dim, num_layers, dropout=0.2):
         super(Decoder, self).__init__()
 
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
+        self.dropout = nn.Dropout(dropout)
 
         self.rnn = nn.GRU(input_dim, hidden_dim, num_layers, bidirectional=True)
+        self.fc = nn.Linear(hidden_dim * 2, 1)
 
     def forward(self, x, h0):
+        h0 = self.dropout(h0)
         output, hn = self.rnn(x, h0)
-        return output, hn
+        prediction = self.fc(output).flatten()
+
+        return prediction, hn
