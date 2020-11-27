@@ -9,8 +9,8 @@ class NovartisDataset(Dataset):
 
         volume_grouped = self.data.groupby(["country", "brand"])
         for _, df in volume_grouped:
-            self.Xs.append(df["volume"][df["month_num"] < 0].values)
-            self.ys.append(df["volume"][df["month_num"] >= 0].values)
+            self.Xs.append(df[["volume"]][df["month_num"] < 0].values)
+            self.ys.append(df[["volume"]][df["month_num"] >= 0].values)
 
     def __len__(self):
         return len(self.Xs)
