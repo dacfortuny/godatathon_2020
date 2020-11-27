@@ -54,7 +54,7 @@ class Seq2Seq(nn.Module):
         self.decoder = Decoder(1, hidden_dim, num_layers)
 
     def forward(self, x, y=None):
-        y_length = 24
+        y_length = 24  # Number of months to predict
         batch_size = x.shape[1]
 
         _, encoder_hidden_out = self.encoder(x)

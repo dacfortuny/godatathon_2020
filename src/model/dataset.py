@@ -16,10 +16,10 @@ class NovartisDataset(Dataset):
 
     def __getitem__(self, index):
         current_group = self.group_keys[index]
-        df = self.volume_grouped.get_group(current_group)
+        df = self.volume_grouped.get_group(current_group).copy()
 
-        x = df[["volume"]][df["month_num"] < 0].values
-        y = df[["volume"]][df["month_num"] >= 0].values
+        x = df[["volume_norm"]][df["month_num"] < 0].values
+        y = df[["volume_norm"]][df["month_num"] >= 0].values
 
         x = torch.from_numpy(x).float()
         y = torch.from_numpy(y).float()
