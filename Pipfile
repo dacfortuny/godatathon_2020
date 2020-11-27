@@ -67,6 +67,10 @@ Pillow = "==8.0.1"
 Pygments = "==2.7.2"
 QtPy = "==1.9.0"
 Send2Trash = "==1.5.0"
+jupyterlab = "*"
+pandas = "*"
+seaborn = "*"
+plotly = "*"
 
 [requires]
 python_version = "3.8"
