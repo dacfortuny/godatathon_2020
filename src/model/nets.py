@@ -53,9 +53,9 @@ class Seq2Seq(nn.Module):
         self.encoder = Encoder(input_dim, hidden_dim, num_layers)
         self.decoder = Decoder(1, hidden_dim, num_layers)
 
-    def forward(self, x, y):
-        y_length = y.shape[0]
-        batch_size = y.shape[1]
+    def forward(self, x, y=None):
+        y_length = 24
+        batch_size = x.shape[1]
 
         _, encoder_hidden_out = self.encoder(x)
 
