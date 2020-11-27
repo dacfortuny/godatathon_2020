@@ -71,6 +71,7 @@ jupyterlab = "*"
 pandas = "*"
 seaborn = "*"
 plotly = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.8"
