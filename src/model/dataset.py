@@ -1,4 +1,5 @@
 from torch.utils.data import Dataset, DataLoader
+import torch
 
 
 class NovartisDataset(Dataset):
@@ -8,6 +9,9 @@ class NovartisDataset(Dataset):
         self.ys = list()
 
         volume_grouped = self.data.groupby(["country", "brand"])
+
+        self.group_keys = list(volume_grouped.groups.keys())
+
         for _, df in volume_grouped:
             self.Xs.append(df[["volume"]][df["month_num"] < 0].values)
             self.ys.append(df[["volume"]][df["month_num"] >= 0].values)
@@ -16,4 +20,6 @@ class NovartisDataset(Dataset):
         return len(self.Xs)
 
     def __getitem__(self, index):
-        return self.Xs[index], self.ys[index]
+        x = torch.from_numpy(self.Xs[index]).float()
+        y = torch.from_numpy(self.ys[index]).float()
+        return x, y
