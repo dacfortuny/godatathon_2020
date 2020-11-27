@@ -8,18 +8,19 @@ class NovartisDataset(Dataset):
         self.Xs = list()
         self.ys = list()
 
-        volume_grouped = self.data.groupby(["country", "brand"])
-
-        self.group_keys = list(volume_grouped.groups.keys())
-
-        for _, df in volume_grouped:
-            self.Xs.append(df[["volume"]][df["month_num"] < 0].values)
-            self.ys.append(df[["volume"]][df["month_num"] >= 0].values)
+        self.volume_grouped = self.data.groupby(["country", "brand"])
+        self.group_keys = list(self.volume_grouped.groups)
 
     def __len__(self):
-        return len(self.Xs)
+        return len(self.group_keys)
 
     def __getitem__(self, index):
-        x = torch.from_numpy(self.Xs[index]).float()
-        y = torch.from_numpy(self.ys[index]).float()
+        current_group = self.group_keys[index]
+        df = self.volume_grouped.get_group(current_group)
+
+        x = df[["volume"]][df["month_num"] < 0].values
+        y = df[["volume"]][df["month_num"] >= 0].values
+
+        x = torch.from_numpy(x).float()
+        y = torch.from_numpy(y).float()
         return x, y

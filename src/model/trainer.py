@@ -15,22 +15,24 @@ class RNNModel(pl.LightningModule):
         self.loss_fc = torch.nn.MSELoss()
 
     def forward(self, x, y):
-        x = x.permute(1, 0, 2)
-        y = y.permute(1, 0, 2)
-
         return self.model(x, y)
 
     def training_step(self, batch, batch_idx):
         x, y = batch
 
-        y_hat = self(x, y)
+        x = x.permute(1, 0, 2)
+        y = y.permute(1, 0, 2)
 
+        y_hat = self(x, y)
         loss = self.loss_fc(y_hat, y)
         self.log('train_loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
+
+        x = x.permute(1, 0, 2)
+        y = y.permute(1, 0, 2)
 
         y_hat = self(x, y)
         loss = self.loss_fc(y_hat, y)
