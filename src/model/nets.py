@@ -18,3 +18,18 @@ class Encoder(nn.Module):
                          device=x.device)
         output, hn = self.rnn(x, h0)
         return output, hn
+
+
+class Decoder(nn.Module):
+    def __init__(self, input_dim, hidden_dim, num_layers):
+        super(Decoder, self).__init__()
+
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+
+        self.rnn = nn.GRU(input_dim, hidden_dim, num_layers, bidirectional=True)
+
+    def forward(self, x, h0):
+        output, hn = self.rnn(x, h0)
+        return output, hn
