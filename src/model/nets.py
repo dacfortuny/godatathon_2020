@@ -3,14 +3,15 @@ from torch import nn
 
 
 class Encoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers):
+    def __init__(self, input_dim, hidden_dim, num_layers, dropout=0.2):
         super(Encoder, self).__init__()
 
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
 
-        self.rnn = nn.GRU(input_dim, hidden_dim, num_layers, bidirectional=True)
+        self.rnn = nn.GRU(input_dim, hidden_dim, num_layers,
+                          bidirectional=True, dropout=dropout)
 
     def forward(self, temp_features, static_features):
         h0 = torch.stack(2 * self.num_layers * [static_features])
@@ -27,7 +28,8 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.dropout = nn.Dropout(dropout)
 
-        self.rnn = nn.GRU(input_dim, hidden_dim, num_layers, bidirectional=True)
+        self.rnn = nn.GRU(input_dim, hidden_dim, num_layers,
+                          bidirectional=True, dropout=dropout)
         self.fc = nn.Linear(hidden_dim * 2, 3)
 
     def forward(self, x, h0):
@@ -41,13 +43,15 @@ class Decoder(nn.Module):
 class Seq2Seq(nn.Module):
     EMBEDDING_DIM = 4
 
-    def __init__(self, input_dim, hidden_dim, num_layers,
+    def __init__(self, input_dim, hidden_dim, num_layers, dropout=0.2,
                  n_countries=16, n_brands=484, n_packages=7, n_therapeutical=14):
         super(Seq2Seq, self).__init__()
 
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
+
+        self.dropout = nn.Dropout(dropout)
 
         self.country_emb = nn.Embedding(num_embeddings=n_countries,
                                         embedding_dim=self.EMBEDDING_DIM)
@@ -68,10 +72,10 @@ class Seq2Seq(nn.Module):
         # Embeddings
         categorical_emb_features = torch.cat(
             [
-                self.country_emb(cat_features[0]),
-                self.brand_emb(cat_features[1]),
-                self.package_emb(cat_features[2]),
-                self.therapeutical_emb(cat_features[3])
+                self.dropout(self.country_emb(cat_features[0])),
+                self.dropout(self.brand_emb(cat_features[1])),
+                self.dropout(self.package_emb(cat_features[2])),
+                self.dropout(self.therapeutical_emb(cat_features[3]))
             ], dim=1)
 
         # Static features (not changing over time)

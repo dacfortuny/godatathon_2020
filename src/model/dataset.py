@@ -43,7 +43,13 @@ class NovartisDataset(Dataset):
             df["num_generics"].unique().item(),
             df["channel_rate_A"].unique().item(),
             df["channel_rate_B"].unique().item(),
-            df["channel_rate_C"].unique().item()
+            df["channel_rate_C"].unique().item(),
+            df["brands_in_country"].unique().item(),
+            df["countries_present"].unique().item(),
+            df["max_volume_rel"].unique().item(),
+            df["package_max_volume"].unique().item(),
+            df["therapeutic_in_country"].unique().item(),
+            df["time_to_generics"].unique().item()
         ]
         encoder_num_features = torch.tensor(encoder_num_features,
                                             dtype=torch.float)
