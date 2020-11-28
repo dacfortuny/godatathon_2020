@@ -63,6 +63,11 @@ class Seq2Seq(nn.Module):
 
         # Take data from month -1 as first input for decoder
         decoder_input = x[[-1]]
+
+        # TODO: Add compatibility for passing time data
+        # Select only the first channel (volume)
+        decoder_input = decoder_input[:, :, [0]]
+
         decoder_hidden = encoder_hidden_out
 
         for i in range(y_length):
