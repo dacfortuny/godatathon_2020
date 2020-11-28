@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 import torch
 from src.model.nets import Seq2Seq
-from src.metrics.loss import custom_metric
+from src.metrics.loss import custom_metric, uncertainty_metric
 
 
 class RNNModel(pl.LightningModule):
@@ -13,29 +13,29 @@ class RNNModel(pl.LightningModule):
         self.save_hyperparameters()
 
         self.model = Seq2Seq(input_dim, hidden_dim, num_layers)
-        # self.loss_fc = torch.nn.MSELoss()
-        self.loss_fc = custom_metric
+
+        self.prediction_loss_fc = custom_metric
+        self.confidence_loss_fc = uncertainty_metric
 
     def forward(self, temp_features, num_features, cat_features, y):
-        temp_features = temp_features.permute(1, 0, 2)
-        y = y.permute(1, 0, 2)
-
-        # num_features = num_features.permute(1, 0)
-        cat_features = cat_features.permute(1, 0)
-
         return self.model(temp_features, num_features, cat_features, y)
 
-    def training_step(self, batch, batch_idx):
+    def _base_run(self, batch):
         # Unpack batch
         encoder_temp_features = batch["encoder_temp_features"]
         encoder_num_features = batch["encoder_num_features"]
         encoder_cat_features = batch["encoder_cat_features"]
-
         decoder_temp_features = batch["decoder_temp_features"]
-
         y = batch["y_norm"]
         avg_12_volume = batch["avg_12_volume"]
         max_volume = batch["max_volume"]
+
+        # Permute arrays
+        encoder_temp_features = encoder_temp_features.permute(1, 0, 2)
+        y = y.permute(1, 0, 2)
+
+        # encoder_num_features = encoder_num_features.permute(1, 0)
+        encoder_cat_features = encoder_cat_features.permute(1, 0)
 
         # Predict
         y_hat = self(encoder_temp_features,
@@ -43,46 +43,33 @@ class RNNModel(pl.LightningModule):
                      encoder_cat_features,
                      y)
 
-        # Flatten
-        y_hat = y_hat.flatten()
-        y = y.flatten()
+        # Loss
+        pred_loss = self.prediction_loss_fc(actuals=y,
+                                            forecast=y_hat["prediction"],
+                                            max_volume=max_volume,
+                                            avg_volume=avg_12_volume)
+        confidence_loss = self.confidence_loss_fc(actuals=y,
+                                                  upper_bound=y_hat["upper_bound"],
+                                                  lower_bound=y_hat["lower_bound"],
+                                                  max_volume=max_volume,
+                                                  avg_volume=avg_12_volume)
 
-        loss = self.loss_fc(actuals=y,
-                            forecast=y_hat,
-                            max_volume=max_volume,
-                            avg_volume=avg_12_volume)
+        loss = (0.5 * pred_loss + (1 - 0.5) * confidence_loss)
 
-        self.log('train_loss', loss)
+        return loss, pred_loss, confidence_loss
+
+    def training_step(self, batch, batch_idx):
+        loss, pred_loss, confidence_loss = self._base_run(batch)
+        self.log('train/loss', loss)
+        self.log('train/prediction_loss', pred_loss)
+        self.log('train/confidence_loss', confidence_loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        # Unpack batch
-        encoder_temp_features = batch["encoder_temp_features"]
-        encoder_num_features = batch["encoder_num_features"]
-        encoder_cat_features = batch["encoder_cat_features"]
-
-        decoder_temp_features = batch["decoder_temp_features"]
-
-        y = batch["y_norm"]
-        avg_12_volume = batch["avg_12_volume"]
-        max_volume = batch["max_volume"]
-
-        # Predict
-        y_hat = self(encoder_temp_features,
-                     encoder_num_features,
-                     encoder_cat_features,
-                     y)
-
-        # Flatten
-        y_hat = y_hat.flatten()
-        y = y.flatten()
-
-        loss = self.loss_fc(actuals=y,
-                            forecast=y_hat,
-                            max_volume=max_volume,
-                            avg_volume=avg_12_volume)
-
-        self.log('val_loss', loss)
+        loss, pred_loss, confidence_loss = self._base_run(batch)
+        self.log('val/loss', loss)
+        self.log('val/prediction_loss', pred_loss)
+        self.log('val/confidence_loss', confidence_loss)
         return loss
 
     def configure_optimizers(self):
