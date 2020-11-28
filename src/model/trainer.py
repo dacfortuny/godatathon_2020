@@ -73,4 +73,10 @@ class RNNModel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+
+        lambda1 = lambda epoch: 0.9 ** epoch
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,
+                                                      lr_lambda=lambda1)
+
+        return [optimizer], [scheduler]
