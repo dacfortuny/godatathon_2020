@@ -104,8 +104,8 @@ class Seq2Seq(nn.Module):
             decoder_input = decoder_out[:, :, [0]]
 
             predictions[i] = decoder_out[0, :, [0]]
-            upper_bounds[i] = decoder_out[0, :, [1]]
-            lower_bounds[i] = decoder_out[0, :, [2]]
+            upper_bounds[i] = decoder_out[0, :, [0]] + decoder_out[0, :, [1]]
+            lower_bounds[i] = decoder_out[0, :, [0]] - decoder_out[0, :, [2]]
 
             # TODO: Add teacher forcing
 
