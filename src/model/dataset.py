@@ -16,11 +16,19 @@ class NovartisDataset(Dataset):
 
     def __getitem__(self, index):
         current_group = self.group_keys[index]
-        df = self.volume_grouped.get_group(current_group).copy()
+        df = self.volume_grouped.get_group(current_group)
 
-        x = df[["volume_norm"]][df["month_num"] < 0].values
-        y = df[["volume_norm"]][df["month_num"] >= 0].values
+        # Average/max volume of prev 12 months (used for metric)
+        avg_12_volume = df["avg_12_volume"].unique().item()
+        max_volume = df["max_volume"].unique().item()
 
-        x = torch.from_numpy(x).float()
-        y = torch.from_numpy(y).float()
-        return x, y
+        x_norm = df[["volume_norm"]][df["month_num"] < 0].values
+        y_norm = df[["volume_norm"]][df["month_num"] >= 0].values
+
+        x_norm = torch.from_numpy(x_norm).float()
+        y_norm = torch.from_numpy(y_norm).float()
+
+        return {"x_norm": x_norm,
+                "y_norm": y_norm,
+                "avg_12_volume": avg_12_volume,
+                "max_volume": max_volume}
