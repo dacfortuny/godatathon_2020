@@ -72,11 +72,13 @@ class Seq2Seq(nn.Module):
         # Embeddings
         categorical_emb_features = torch.cat(
             [
-                self.dropout(self.country_emb(cat_features[0])),
-                self.dropout(self.brand_emb(cat_features[1])),
-                self.dropout(self.package_emb(cat_features[2])),
-                self.dropout(self.therapeutical_emb(cat_features[3]))
+                self.country_emb(cat_features[0]),
+                self.brand_emb(cat_features[1]),
+                self.package_emb(cat_features[2]),
+                self.therapeutical_emb(cat_features[3])
             ], dim=1)
+
+        categorical_emb_features = self.dropout(categorical_emb_features)
 
         # Static features (not changing over time)
         static_features = torch.cat([num_features, categorical_emb_features], dim=1)
