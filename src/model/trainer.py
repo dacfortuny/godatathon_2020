@@ -16,11 +16,14 @@ class RNNModel(pl.LightningModule):
         # self.loss_fc = torch.nn.MSELoss()
         self.loss_fc = custom_metric
 
-    def forward(self, x, y):
-        x = x.permute(1, 0, 2)
+    def forward(self, temp_features, num_features, cat_features, y):
+        temp_features = temp_features.permute(1, 0, 2)
         y = y.permute(1, 0, 2)
 
-        return self.model(x, y)
+        # num_features = num_features.permute(1, 0)
+        cat_features = cat_features.permute(1, 0)
+
+        return self.model(temp_features, num_features, cat_features, y)
 
     def training_step(self, batch, batch_idx):
         # Unpack batch
@@ -35,7 +38,10 @@ class RNNModel(pl.LightningModule):
         max_volume = batch["max_volume"]
 
         # Predict
-        y_hat = self(encoder_temp_features, y)
+        y_hat = self(encoder_temp_features,
+                     encoder_num_features,
+                     encoder_cat_features,
+                     y)
 
         # Flatten
         y_hat = y_hat.flatten()
@@ -62,7 +68,10 @@ class RNNModel(pl.LightningModule):
         max_volume = batch["max_volume"]
 
         # Predict
-        y_hat = self(encoder_temp_features, y)
+        y_hat = self(encoder_temp_features,
+                     encoder_num_features,
+                     encoder_cat_features,
+                     y)
 
         # Flatten
         y_hat = y_hat.flatten()
