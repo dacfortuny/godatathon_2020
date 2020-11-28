@@ -28,7 +28,7 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         self.rnn = nn.GRU(input_dim, hidden_dim, num_layers, bidirectional=True)
-        self.fc = nn.Linear(hidden_dim * 2, 1)
+        self.fc = nn.Linear(hidden_dim * 2, 3)
 
     def forward(self, x, h0):
         h0 = self.dropout(h0)
@@ -79,12 +79,13 @@ class Seq2Seq(nn.Module):
 
         _, encoder_hidden_out = self.encoder(temp_features, static_features)
 
-        predictions = torch.zeros(y_length, batch_size).to(temp_features.device)
+        predictions = torch.zeros(y_length, batch_size, 1).to(temp_features.device)
+        upper_bounds = torch.zeros(y_length, batch_size, 1).to(temp_features.device)
+        lower_bounds = torch.zeros(y_length, batch_size, 1).to(temp_features.device)
 
         # Take data from month -1 as first input for decoder
         decoder_input = temp_features[[-1]]
 
-        # TODO: Add compatibility for passing time data
         # Select only the first channel (volume)
         decoder_input = decoder_input[:, :, [0]]
 
@@ -93,9 +94,15 @@ class Seq2Seq(nn.Module):
         for i in range(y_length):
             decoder_out, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
 
-            predictions[i] = decoder_out.flatten()
+            # Note: decoder_out: [1, bs, 3] -> 3:(prediction, upper_bound, lower_bound)
+            decoder_input = decoder_out[:, :, [0]]
+
+            predictions[i] = decoder_out[0, :, [0]]
+            upper_bounds[i] = decoder_out[0, :, [1]]
+            lower_bounds[i] = decoder_out[0, :, [2]]
 
             # TODO: Add teacher forcing
-            decoder_input = decoder_out
 
-        return predictions.unsqueeze(dim=-1)
+        return {"prediction": predictions,
+                "upper_bound": upper_bounds,
+                "lower_bound": lower_bounds}
