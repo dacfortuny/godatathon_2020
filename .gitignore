@@ -138,3 +138,6 @@ dmypy.json
 # Data
 data/
 .csv
+
+# Tableau
+dashboard/*.twbr
