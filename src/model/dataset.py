@@ -22,13 +22,28 @@ class NovartisDataset(Dataset):
         avg_12_volume = df["avg_12_volume"].unique().item()
         max_volume = df["max_volume"].unique().item()
 
-        x_norm = df[["volume_norm"]][df["month_num"] < 0].values
-        y_norm = df[["volume_norm"]][df["month_num"] >= 0].values
+        # Y
+        post_idx = df["month_num"] >= 0
+        y_norm = df[["volume_norm"]][post_idx].values
 
-        x_norm = torch.from_numpy(x_norm).float()
+        # Features
+        pre_idx = df["month_num"] < 0
+        df_pre = df[pre_idx]
+
+        pre_vol_norm = df_pre[["volume_norm"]].values
+        months = df_pre[["month_sin", "month_cos"]].values
+
         y_norm = torch.from_numpy(y_norm).float()
 
-        return {"x_norm": x_norm,
-                "y_norm": y_norm,
-                "avg_12_volume": avg_12_volume,
-                "max_volume": max_volume}
+        pre_vol_norm = torch.from_numpy(pre_vol_norm).float()
+        months = torch.from_numpy(months).float()
+
+        # Concatenate temporal features
+        x = torch.cat([pre_vol_norm, months], dim=1)
+
+        return {
+            "x": x,
+            "y_norm": y_norm,
+            "avg_12_volume": avg_12_volume,
+            "max_volume": max_volume
+        }

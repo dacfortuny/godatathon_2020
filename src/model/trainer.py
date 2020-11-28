@@ -24,7 +24,7 @@ class RNNModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         # Unpack batch
-        x = batch["x_norm"]
+        x = batch["x"]
         y = batch["y_norm"]
         avg_12_volume = batch["avg_12_volume"]
         max_volume = batch["max_volume"]
@@ -46,7 +46,7 @@ class RNNModel(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         # Unpack batch
-        x = batch["x_norm"]
+        x = batch["x"]
         y = batch["y_norm"]
         avg_12_volume = batch["avg_12_volume"]
         max_volume = batch["max_volume"]
