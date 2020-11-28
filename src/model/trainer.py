@@ -24,13 +24,18 @@ class RNNModel(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         # Unpack batch
-        x = batch["x"]
+        encoder_temp_features = batch["encoder_temp_features"]
+        encoder_num_features = batch["encoder_num_features"]
+        encoder_cat_features = batch["encoder_cat_features"]
+
+        decoder_temp_features = batch["decoder_temp_features"]
+
         y = batch["y_norm"]
         avg_12_volume = batch["avg_12_volume"]
         max_volume = batch["max_volume"]
 
         # Predict
-        y_hat = self(x, y)
+        y_hat = self(encoder_temp_features, y)
 
         # Flatten
         y_hat = y_hat.flatten()
@@ -46,13 +51,18 @@ class RNNModel(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         # Unpack batch
-        x = batch["x"]
+        encoder_temp_features = batch["encoder_temp_features"]
+        encoder_num_features = batch["encoder_num_features"]
+        encoder_cat_features = batch["encoder_cat_features"]
+
+        decoder_temp_features = batch["decoder_temp_features"]
+
         y = batch["y_norm"]
         avg_12_volume = batch["avg_12_volume"]
         max_volume = batch["max_volume"]
 
         # Predict
-        y_hat = self(x, y)
+        y_hat = self(encoder_temp_features, y)
 
         # Flatten
         y_hat = y_hat.flatten()
