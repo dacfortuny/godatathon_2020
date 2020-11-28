@@ -66,7 +66,7 @@ class Seq2Seq(nn.Module):
         self.decoder = Decoder(1, hidden_dim, num_layers)
 
     def forward(self, temp_features, num_features, cat_features, y=None):
-        y_length = 24  # Number of months to predict
+        pred_length = 24  # Number of months to predict
         batch_size = temp_features.shape[1]
 
         # Embeddings
@@ -85,9 +85,9 @@ class Seq2Seq(nn.Module):
 
         _, encoder_hidden_out = self.encoder(temp_features, static_features)
 
-        predictions = torch.zeros(y_length, batch_size, 1).to(temp_features.device)
-        upper_bounds = torch.zeros(y_length, batch_size, 1).to(temp_features.device)
-        lower_bounds = torch.zeros(y_length, batch_size, 1).to(temp_features.device)
+        predictions = torch.zeros(pred_length, batch_size, 1).to(temp_features.device)
+        upper_bounds = torch.zeros(pred_length, batch_size, 1).to(temp_features.device)
+        lower_bounds = torch.zeros(pred_length, batch_size, 1).to(temp_features.device)
 
         # Take data from month -1 as first input for decoder
         decoder_input = temp_features[[-1]]
@@ -97,10 +97,10 @@ class Seq2Seq(nn.Module):
 
         decoder_hidden = encoder_hidden_out
 
-        for i in range(y_length):
+        for i in range(pred_length):
             decoder_out, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
 
-            # Note: decoder_out: [1, bs, 3] -> 3:(prediction, upper_bound, lower_bound)
+            # Note: decoder_out: [1, bs, 3] -> 3:(prediction, upper_residual, lower_residual)
             decoder_input = decoder_out[:, :, [0]]
 
             predictions[i] = decoder_out[0, :, [0]]
