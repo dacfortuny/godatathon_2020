@@ -43,7 +43,7 @@ class Decoder(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-    EMBEDDING_DIM = 4
+    EMBEDDING_DIM = 5
 
     def __init__(self, input_dim, hidden_dim, num_layers, dropout=0.2, teacher_forcing=0.5,
                  n_countries=16, n_brands=484, n_packages=7, n_therapeutical=14):
