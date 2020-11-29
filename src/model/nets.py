@@ -105,7 +105,8 @@ class Seq2Seq(nn.Module):
 
             # TODO: Add teacher forcing
             # Note: decoder_out: [1, bs, 3] -> 3:(prediction, upper_residual, lower_residual)
-            if i < y.shape[0] and random.random() > self.teacher_forcing:
+            apply_teacher_forcing = i < y.shape[0] and random.random() < self.teacher_forcing
+            if apply_teacher_forcing:
                 decoder_input = y[[i], :, :]
             else:
                 decoder_input = decoder_out[:, :, [0]]
