@@ -1,3 +1,5 @@
+import random
+
 import torch
 from torch import nn
 
@@ -41,9 +43,9 @@ class Decoder(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-    EMBEDDING_DIM = 4
+    EMBEDDING_DIM = 5
 
-    def __init__(self, input_dim, hidden_dim, num_layers, dropout=0.2,
+    def __init__(self, input_dim, hidden_dim, num_layers, dropout=0.2, teacher_forcing=0.5,
                  n_countries=16, n_brands=484, n_packages=7, n_therapeutical=14):
         super(Seq2Seq, self).__init__()
 
@@ -52,6 +54,7 @@ class Seq2Seq(nn.Module):
         self.num_layers = num_layers
 
         self.dropout = nn.Dropout(dropout)
+        self.teacher_forcing = teacher_forcing
 
         self.country_emb = nn.Embedding(num_embeddings=n_countries,
                                         embedding_dim=self.EMBEDDING_DIM)
@@ -100,14 +103,17 @@ class Seq2Seq(nn.Module):
         for i in range(pred_length):
             decoder_out, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
 
+            # TODO: Add teacher forcing
             # Note: decoder_out: [1, bs, 3] -> 3:(prediction, upper_residual, lower_residual)
-            decoder_input = decoder_out[:, :, [0]]
+            if i < y.shape[0] and random.random() > self.teacher_forcing:
+                decoder_input = y[[i], :, :]
+            else:
+                decoder_input = decoder_out[:, :, [0]]
 
             predictions[i] = decoder_out[0, :, [0]]
             upper_bounds[i] = decoder_out[0, :, [0]] + decoder_out[0, :, [1]]
             lower_bounds[i] = decoder_out[0, :, [0]] - decoder_out[0, :, [2]]
 
-            # TODO: Add teacher forcing
 
         return {"prediction": predictions,
                 "upper_bound": upper_bounds,
